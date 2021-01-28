@@ -1,12 +1,8 @@
-mod utils;
 use glyph_brush_layout::{
     rusttype::{Font, Scale},
     *,
 };
 use image::{DynamicImage, Rgba};
-use js_sys::Uint8Array;
-use serde_wasm_bindgen;
-use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -14,29 +10,19 @@ use wasm_bindgen::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-// A macro to provide `println!(..)`-style syntax for `console.log` logging.
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
 
-#[wasm_bindgen]
 pub fn generate_text(
     title: &str,
     author: &str,
     title_font_size: i32,
     subtitle_font_size: i32,
-    rgb: JsValue,
+    rgb_value: (u8, u8, u8),
     font_style: &str,
-    font_file: Uint8Array,
+    font_file: Vec<u8>,
 ) -> Vec<u8> {
-    utils::set_panic_hook();
     const WIDTH: f32 = 1200.0;
     const HEIGHT: f32 = 630.0;
     const PADDING: f32 = 50.0;
-
-    let rgb_value: (u8, u8, u8) = serde_wasm_bindgen::from_value(rgb).unwrap();
 
     let font = if font_style == "monospace" {
         Font::from_bytes(&include_bytes!("../fonts/Inconsolata-Medium.ttf")[..])
@@ -45,9 +31,7 @@ pub fn generate_text(
         Font::from_bytes(&include_bytes!("../fonts/OpenSans-Regular.ttf")[..])
             .expect("Error constructing Font")
     } else {
-        // take font binary passed in as Uint8Array and copy the contents into a new vec
-        let user_font = font_file.to_vec();
-        Font::from_bytes(user_font).expect("Error constructing Font")
+        Font::from_bytes(font_file).expect("Error constructing Font")
     };
 
     let fonts = vec![font];
